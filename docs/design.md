@@ -39,7 +39,7 @@ suketan2 task <subcommand> [arguments]: スケジュールパターン内のタ�
 - `-g, --tags <タグ>`: タグ（カンマ区切り）
 
 `task list`
-テンプレート内のタスクを一覧表示します。
+スケジュール内のタスクを一覧表示します。
 構文: suketan2 task list "<スケジュール名>"
 
 `task edit`
