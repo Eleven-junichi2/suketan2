@@ -1,3 +1,4 @@
+# TODO: Replace check existing schedule for each function with _schedule_exists
 from dataclasses import dataclass, field
 from pathlib import Path
 import json
@@ -44,6 +45,13 @@ class Suketan:
         APP_DIR.mkdir(parents=True, exist_ok=True)
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(self.schedules, f, indent=4)
+    
+    def _schedule_exists(self, name: str, raise_err: bool = True) -> bool:
+        result = name in self.schedules
+        if raise_err and result:
+            raise ValueError(f"Schedule '{name}' does not exist.")
+        else:
+            return result
 
     def create_schedule(self, name: str):
         if name in self.schedules:
@@ -64,6 +72,11 @@ class Suketan:
 
     def get_schedule_titles(self) -> set[str]:
         return set(self.schedules.keys())
+
+    def add_task(self, schedule_name: str, task: Task):
+        if schedule_name not in self.schedules:
+            raise ValueError(f"Schedule '{schedule_name}' does not exist.")
+        self.schedules[schedule_name].append(task)
 
 
 suketan = Suketan()
