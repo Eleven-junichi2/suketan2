@@ -8,3 +8,8 @@ dependencies = [
     "prompt-toolkit>=3.0.52",
     "typer>=0.19.2",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+]
