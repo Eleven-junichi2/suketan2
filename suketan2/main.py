@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 import json
 import os
+import datetime
 
 # from prompt_toolkit.shortcuts import choice
 import typer
@@ -41,7 +42,8 @@ class Suketan:
     def __init__(self, schedules: dict[str, list[Task]] | None = None):
         self.schedules: dict[str, list[Task]] = schedules if schedules else {}
 
-    def load_schedules(self, filepath: os.PathLike) -> dict[str, list[Task]]:
+    @staticmethod
+    def load_schedules(filepath: os.PathLike) -> dict[str, list[Task]]:
         if Path(filepath).exists():
             with open(filepath, "r", encoding="utf-8") as f:
                 schedules_data = json.load(f)
@@ -54,52 +56,52 @@ class Suketan:
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(self.schedules, f, indent=4)
 
-    def _schedule_exists(self, name: str, raise_err: bool = True) -> bool:
-        result = name in self.schedules
-        if raise_err and result:
-            raise ValueError(f"Schedule '{name}' does not exist.")
-        else:
-            return result
-
-    def create_schedule(self, name: str):
-        self._schedule_exists(name)
-        self.schedules[name] = []
+    def create_schedule(self, title: str):
+        if title in self.schedules:
+            raise ValueError(f"Schedule '{title}' already exists.")
+        self.schedules[title] = []
 
     def rename_schedule(self, old_name: str, new_name: str):
-        self._schedule_exists(old_name)
-        if self._schedule_exists(new_name, raise_err=False):
+        if old_name not in self.schedules:
+            raise ValueError(f"Schedule '{old_name}' does not exist.")
+        if new_name in self.schedules:
             raise ValueError(f"Schedule '{new_name}' already exists.")
         self.schedules[new_name] = self.schedules.pop(old_name)
 
-    def delete_schedule(self, name: str):
-        self._schedule_exists(name)
-        del self.schedules[name]
+    def delete_schedule(self, title: str):
+        if title not in self.schedules:
+            raise ValueError(f"Schedule '{title}' does not exist.")
+        del self.schedules[title]
 
     def get_schedule_titles(self) -> set[str]:
         return set(self.schedules.keys())
 
-    def add_task(self, schedule_name: str, task: Task):
-        self._schedule_exists(schedule_name)
-        self.schedules[schedule_name].append(task)
+    def add_task(self, schedule_title: str, task: Task):
+        if schedule_title not in self.schedules:
+            raise ValueError(f"Schedule '{schedule_title}' does not exist.")
+        self.schedules[schedule_title].append(task)
 
-    def list_tasks(self, schedule_name: str) -> list[Task]:
-        self._schedule_exists(schedule_name)
-        return self.schedules[schedule_name]
+    def list_tasks(self, schedule_title: str) -> list[Task]:
+        if schedule_title not in self.schedules:
+            raise ValueError(f"Schedule '{schedule_title}' does not exist.")
+        return self.schedules[schedule_title]
 
-    def overwrite_task(self, schedule_name: str, task_id: int, new_task: Task):
-        self._schedule_exists(schedule_name)
-        if task_id < 0 or task_id >= len(self.schedules[schedule_name]):
+    def overwrite_task(self, schedule_title: str, task_id: int, new_task: Task):
+        if schedule_title not in self.schedules:
+            raise ValueError(f"Schedule '{schedule_title}' does not exist.")
+        if task_id < 0 or task_id >= len(self.schedules[schedule_title]):
             raise IndexError("Task ID out of range.")
-        self.schedules[schedule_name][task_id] = new_task
+        self.schedules[schedule_title][task_id] = new_task
 
-    def delete_task(self, schedule_name: str, task_id: int):
-        self._schedule_exists(schedule_name)
-        if task_id < 0 or task_id >= len(self.schedules[schedule_name]):
+    def delete_task(self, schedule_title: str, task_id: int):
+        if schedule_title not in self.schedules:
+            raise ValueError(f"Schedule '{schedule_title}' does not exist.")
+        if task_id < 0 or task_id >= len(self.schedules[schedule_title]):
             raise IndexError("Task ID out of range.")
-        del self.schedules[schedule_name][task_id]
+        del self.schedules[schedule_title][task_id]
 
 
-suketan = Suketan()
+suketan = Suketan(Suketan.load_schedules(SCHEDULES_FILEPATH))
 
 app = typer.Typer()
 schedule_app = typer.Typer()
@@ -109,17 +111,24 @@ app.add_typer(task_app, name="task", help="Manage tasks")
 
 
 @schedule_app.command()
-def create():
+def create(title: str | None = None):
     """Create a new schedule"""
-    name = typer.prompt("Enter schedule name")
-    suketan.create_schedule(name)
-    print(f"Schedule '{name}' created.")
+    if title is None:
+        title = typer.prompt("Enter schedule name")
+    if title is None:
+        # TODO: set current date and time str
+        # title = 
+        raise NotImplementedError
+    suketan.create_schedule(title)
+    suketan.save_schedules(SCHEDULES_FILEPATH)
+    print(f"Schedule '{title}' created.")
 
 
 @schedule_app.command()
 def delete(name: str = typer.Argument(..., help="Name of the schedule to delete")):
     """Delete an existing schedule"""
     suketan.delete_schedule(name)
+    suketan.save_schedules(SCHEDULES_FILEPATH)
     print(f"Schedule '{name}' deleted.")
 
 
@@ -129,6 +138,7 @@ def rename(
     new_name: str = typer.Argument(..., help="New name for the schedule"),
 ):
     suketan.rename_schedule(old_name, new_name)
+    suketan.save_schedules(SCHEDULES_FILEPATH)
     print(f"Schedule renamed from '{old_name}' to '{new_name}'.")
 
 
@@ -139,8 +149,8 @@ def list_():
     if not schedules:
         print("No schedules found.")
         return
-    for idx, name in enumerate(schedules, 1):
-        print(f"{idx}. {name}")
+    for name in schedules:
+        print(f"- {name}")
 
 
 if __name__ == "__main__":
