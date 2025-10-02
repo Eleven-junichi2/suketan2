@@ -1,6 +1,6 @@
 import pytest  # noqa: F401
 
-from suketan2.main import Suketan
+from suketan2.main import Suketan, Task
 
 def test_create_schedule():
     suketan = Suketan()
@@ -29,3 +29,5 @@ def test_get_schedule_titles():
     schedules = suketan.get_schedule_titles()
     assert "Gym" in schedules
     assert "Study" in schedules
+
+# def test_add_and_list_tasks():

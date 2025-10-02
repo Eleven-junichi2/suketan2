@@ -23,8 +23,16 @@ class Config:
 
 @dataclass
 class Task:
-    name: str
-    duration: int
+    """A task in a schedule
+    
+    Attributes:
+        name (str): The name of the task
+        time (str): The time of the task in HH:MM format
+        description (str): A brief description of the task
+        tag (list[str]): A list of tags
+    """
+    title: str
+    time: str
     description: str = ""
     tag: list[str] = field(default_factory=list)
 
@@ -45,7 +53,7 @@ class Suketan:
         APP_DIR.mkdir(parents=True, exist_ok=True)
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(self.schedules, f, indent=4)
-    
+
     def _schedule_exists(self, name: str, raise_err: bool = True) -> bool:
         result = name in self.schedules
         if raise_err and result:
@@ -54,29 +62,41 @@ class Suketan:
             return result
 
     def create_schedule(self, name: str):
-        if name in self.schedules:
-            raise ValueError(f"Schedule '{name}' already exists.")
+        self._schedule_exists(name)
         self.schedules[name] = []
 
     def rename_schedule(self, old_name: str, new_name: str):
-        if old_name not in self.schedules:
-            raise ValueError(f"Schedule '{old_name}' does not exist.")
-        if new_name in self.schedules:
+        self._schedule_exists(old_name)
+        if self._schedule_exists(new_name, raise_err=False):
             raise ValueError(f"Schedule '{new_name}' already exists.")
         self.schedules[new_name] = self.schedules.pop(old_name)
 
     def delete_schedule(self, name: str):
-        if name not in self.schedules:
-            raise ValueError(f"Schedule '{name}' does not exist.")
+        self._schedule_exists(name)
         del self.schedules[name]
 
     def get_schedule_titles(self) -> set[str]:
         return set(self.schedules.keys())
 
     def add_task(self, schedule_name: str, task: Task):
-        if schedule_name not in self.schedules:
-            raise ValueError(f"Schedule '{schedule_name}' does not exist.")
+        self._schedule_exists(schedule_name)
         self.schedules[schedule_name].append(task)
+
+    def list_tasks(self, schedule_name: str) -> list[Task]:
+        self._schedule_exists(schedule_name)
+        return self.schedules[schedule_name]
+
+    def overwrite_task(self, schedule_name: str, task_id: int, new_task: Task):
+        self._schedule_exists(schedule_name)
+        if task_id < 0 or task_id >= len(self.schedules[schedule_name]):
+            raise IndexError("Task ID out of range.")
+        self.schedules[schedule_name][task_id] = new_task
+
+    def delete_task(self, schedule_name: str, task_id: int):
+        self._schedule_exists(schedule_name)
+        if task_id < 0 or task_id >= len(self.schedules[schedule_name]):
+            raise IndexError("Task ID out of range.")
+        del self.schedules[schedule_name][task_id]
 
 
 suketan = Suketan()
