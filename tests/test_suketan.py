@@ -1,6 +1,6 @@
 import pytest  # noqa: F401
 
-from suketan2.main import Suketan, Task
+from suketan2.main import Suketan
 
 def test_create_schedule():
     suketan = Suketan()

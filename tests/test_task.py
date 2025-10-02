@@ -1,4 +1,4 @@
-import pytest
+import pytest  # noqa: F401
 
 from suketan2.main import Task
 
