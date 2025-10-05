@@ -1,6 +1,6 @@
 import pytest  # noqa: F401
 
-from suketan2.main import Task
+from suketan2.core import Task
 
 def test_task():
     task = Task(title="Buy groceries", time="01:00", description="Milk, Bread, Eggs")
