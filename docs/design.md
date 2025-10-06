@@ -33,9 +33,9 @@ suketan2 task <subcommand> [arguments]: スケジュールパターン内のタ�
 テンプレートに新しいタスクを追加します。
 構文: suketan2 task add "<タスク内容>" -s "<スケジュール名>" [オプション]
 オプション:
-- `-f, --from HH:MM`: 開始時刻
-- `-t, --to HH:MM`: 終了時刻
-- `-d, --duration <時間>`: 所要時間 (例: 1h30m, 45m)
+- `-n, --title <タスク名>`
+- `-t, --time <時間>`: 所要時間 (例: 1h30m, 45m)
+- `-d, --description <タスク内容説明>`
 - `-g, --tags <タグ>`: タグ（カンマ区切り）
 
 `task list`

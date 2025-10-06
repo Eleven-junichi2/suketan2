@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
+from pathlib import Path
 import json
 import os
-from pathlib import Path
 
 
 @dataclass
@@ -21,7 +21,7 @@ class Task:
     tag: list[str] = field(default_factory=list)
 
 
-class Suketan:
+class ScheduleManager:
     def __init__(self, schedules: dict[str, list[Task]] | None = None):
         self.schedules: dict[str, list[Task]] = schedules if schedules else {}
 
